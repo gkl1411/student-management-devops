@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Management</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; padding: 0 16px; }
+    h1 { color: #2c3e50; }
+    form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    input { padding: 8px; flex: 1; min-width: 120px; }
+    button { padding: 8px 14px; background: #2c7be5; color: #fff; border: none; cursor: pointer; }
+    button.del { background: #e55353; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f4f6f8; }
+  </style>
+</head>
+<body>
+  <h1>Student Management System</h1>
+
+  <form id="form">
+    <input id="name" placeholder="Name" required>
+    <input id="rollNo" placeholder="Roll No" required>
+    <input id="branch" placeholder="Branch">
+    <input id="year" type="number" placeholder="Year" min="1" max="4">
+    <button type="submit">Add Student</button>
+  </form>
+
+  <table>
+    <thead><tr><th>ID</th><th>Name</th><th>Roll No</th><th>Branch</th><th>Year</th><th></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <script>
+    async function load() {
+      const res = await fetch('/api/students');
+      const data = await res.json();
+      document.getElementById('rows').innerHTML = data.map(s => `
+        <tr>
+          <td>${s.id}</td><td>${s.name}</td><td>${s.rollNo}</td>
+          <td>${s.branch}</td><td>${s.year}</td>
+          <td><button class="del" onclick="removeStudent(${s.id})">Delete</button></td>
+        </tr>`).join('');
+    }
+
+    async function removeStudent(id) {
+      await fetch('/api/students/' + id, { method: 'DELETE' });
+      load();
+    }
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await fetch('/api/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('name').value,
+          rollNo: document.getElementById('rollNo').value,
+          branch: document.getElementById('branch').value,
+          year: document.getElementById('year').value
+        })
+      });
+      e.target.reset();
+      load();
+    });
+
+    load();
+  </script>
+</body>
+</html>
